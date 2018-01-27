@@ -8,21 +8,40 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+
+
     @IBOutlet weak var businessTableView: UITableView!
+
     
     var businesses: [Business]!
+    var filteredData: [Business]!
+
     
     override func viewDidLoad() {
+        
         super.viewDidLoad()
+        
+        let searchBar = UISearchBar()
+        searchBar.delegate = self
+        searchBar.sizeToFit()
+        
+        navigationItem.titleView = searchBar
+        
+        navigationController?.navigationBar.tintColor = .white
+        navigationController?.navigationBar.backgroundColor = .red
+        navigationController?.navigationBar.barTintColor = .red
+        
         
         businessTableView.delegate = self
         businessTableView.dataSource = self
+
+        self.filteredData = []
         
         Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
             
             self.businesses = businesses
+            self.filteredData = businesses
             self.businessTableView.reloadData()
             if let businesses = businesses {
                 for business in businesses {
@@ -31,25 +50,15 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
                 }
             }
             
+            
             }
         )
-        
-        /* Example of Yelp search with more search options specified
-         Business.searchWithTerm("Restaurants", sort: .distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: Error!) -> Void in
-         self.businesses = businesses
-         
-         for business in businesses {
-         print(business.name!)
-         print(business.address!)
-         }
-         }
-         */
         
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if businesses != nil{
-            return businesses.count
+            return filteredData.count
         }
         else{
             return 0;
@@ -59,26 +68,23 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = businessTableView.dequeueReusableCell(withIdentifier: "BusinessCellTableViewCell", for: indexPath) as! BusinessCellTableViewCell
         
-        cell.business = businesses[indexPath.row];
+        cell.business = filteredData[indexPath.row];
         
         return cell;
     }
     
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        filteredData = searchText.isEmpty ? businesses : businesses.filter { (item: Business) -> Bool in
+            return item.name?.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
+        }
+        
+        businessTableView.reloadData()
+    }
     
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
-     }
-     */
-    
+
 }

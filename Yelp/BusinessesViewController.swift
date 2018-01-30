@@ -35,6 +35,8 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         
         businessTableView.delegate = self
         businessTableView.dataSource = self
+        businessTableView.rowHeight = UITableViewAutomaticDimension
+        businessTableView.estimatedRowHeight = 120
 
         self.filteredData = []
         
